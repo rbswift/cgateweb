@@ -113,6 +113,7 @@ function started(){
     // Send a NOOP to the Cgate server to keep the connection open and detect if the connection was closed
     setInterval(function(){
       if (logging == true) {console.log('NOOP')};
+      command.write('NOOP\n');
     },KEEPALIVE);
   }
 
