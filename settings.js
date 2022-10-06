@@ -10,8 +10,8 @@ exports.cbusname = "BURS1303";
 exports.mqtt = '127.0.0.1:1883';
 
 //username and password (unncomment to use)
-exports.mqttusername = 'HA-BursMQTT';
-exports.mqttpassword = 'TW0Yo2DnO!7VzjAvoijttpn%EeNZ3o';
+exports.mqttusername = 'user';
+exports.mqttpassword = 'pass';
 
 // net and app for automatically requesting values
 exports.getallnetapp = '254/56';
