@@ -183,15 +183,15 @@ client.on('connect', function() { // When connected
               queue2.write('GET //'+settings.cbusname+'/'+parts[2]+'/'+parts[3]+'/'+parts[4]+' level\n');
               break;
 
-              case "TERMINATE":
-                eventEmitter.on('level',function terminateRamp(address) {
-                  if (address == parts[2]+'/'+parts[3]+'/'+parts[4]) {
-                    queue2.write('TERMINATERAMP //'+settings.cbusname+'/'+parts[2]+'/'+parts[3]+'/'+parts[4]+'\n');
-                    eventEmitter.removeListener('level',terminateRamp);
-                  }
-                });
-                queue2.write('GET //'+settings.cbusname+'/'+parts[2]+'/'+parts[3]+'/'+parts[4]+' level\n');
-                break;  
+            case "TERMINATERAMP":
+              eventEmitter.on('level',function terminateRamp(address) {
+                if (address == parts[2]+'/'+parts[3]+'/'+parts[4]) {
+                  queue2.write('TERMINATERAMP //'+settings.cbusname+'/'+parts[2]+'/'+parts[3]+'/'+parts[4]+'\n');
+                  eventEmitter.removeListener('level',terminateRamp);
+                }
+              });
+              queue2.write('GET //'+settings.cbusname+'/'+parts[2]+'/'+parts[3]+'/'+parts[4]+' level\n');
+              break;  
 
             case "ON":
               queue2.write('ON //'+settings.cbusname+'/'+parts[2]+'/'+parts[3]+'/'+parts[4]+'\n');
