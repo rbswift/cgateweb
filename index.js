@@ -85,7 +85,7 @@ var queue2 =  {
 var HOST = settings.cbusip;
 var COMPORT = 20023;
 var EVENTPORT = 20025;
-var KEEPALIVE = 30;
+var KEEPALIVE = 10000;
 
 var logging = settings.logging;
 
@@ -112,7 +112,7 @@ function started(){
     }
     // Send a NOOP to the Cgate server to keep the connection open and detect if the connection was closed
     setInterval(function(){
-      if (logging == 9) {console.log('cgateweb: NOOP')};
+      if (logging > 0) {console.log('cgateweb: NOOP')};
       command.write('NOOP\n');
     },KEEPALIVE);
   }
