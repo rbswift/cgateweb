@@ -98,21 +98,21 @@ event.connect(EVENTPORT, HOST);
 
 function started(){
   if(commandConnected && eventConnected && client.connected){
-    console.log('ALL CONNECTED');
+    console.log('cgateweb: ALL CONNECTED');
     if(settings.getallnetapp && settings.getallonstart) {
-      console.log('Getting all values');
+      console.log('cgateweb: Getting all values');
       queue2.write('GET //'+settings.cbusname+'/'+settings.getallnetapp+'/* level\n');
     }
     if(settings.getallnetapp && settings.getallperiod) {
       clearInterval(interval);
       setInterval(function(){
-        console.log('Getting all values');
+        console.log('cgateweb: Getting all values');
         queue2.write('GET //'+settings.cbusname+'/'+settings.getallnetapp+'/* level\n');
       },settings.getallperiod*1000);
     }
     // Send a NOOP to the Cgate server to keep the connection open and detect if the connection was closed
     setInterval(function(){
-      if (logging == true) {console.log('NOOP')};
+      if (logging = 9) {console.log('cgateweb: NOOP')};
       command.write('NOOP\n');
     },KEEPALIVE);
   }
@@ -125,7 +125,7 @@ client.on('disconnect',function(){
 
 client.on('connect', function() { // When connected
   clientConnected = true;
-  console.log('CONNECTED TO MQTT: ' + settings.mqtt);
+  console.log('cgateweb: CONNECTED TO MQTT: ' + settings.mqtt);
   started()
 
   // Subscribe to MQTT
@@ -133,7 +133,7 @@ client.on('connect', function() { // When connected
 
     // when a message arrives, do something with it
     client.on('message', function(topic, message, packet) {
-      if (logging == true) {console.log('Message received on ' + topic + ' : ' + message);}
+      if (logging > 0) {console.log('cgateweb: Message received on ' + topic + ' : ' + message);}
 
       parts = topic.split("/");
       if (parts.length > 5)
@@ -225,16 +225,16 @@ client.on('connect', function() { // When connected
 });
 
 command.on('error',function(err){
-  console.log('COMMAND ERROR:'+JSON.stringify(err))
+  console.log('cgateweb: COMMAND ERROR:'+JSON.stringify(err))
 })
 
 event.on('error',function(err){
-  console.log('EVENT ERROR:'+JSON.stringify(err))
+  console.log('cgateweb: EVENT ERROR:'+JSON.stringify(err))
 })
 
 command.on('connect',function(err){
   commandConnected = true;
-  console.log('CONNECTED TO C-GATE COMMAND PORT: ' + HOST + ':' + COMPORT);
+  console.log('cgateweb: CONNECTED TO C-GATE COMMAND PORT: ' + HOST + ':' + COMPORT);
   queue2.write('EVENT ON\n');
   started()
   clearInterval(commandInterval);
@@ -242,7 +242,7 @@ command.on('connect',function(err){
 
 event.on('connect',function(err){
   eventConnected = true;
-  console.log('CONNECTED TO C-GATE EVENT PORT: ' + HOST + ':' + EVENTPORT);
+  console.log('cgateweb: CONNECTED TO C-GATE EVENT PORT: ' + HOST + ':' + EVENTPORT);
   started()
   clearInterval(eventInterval);
 })
@@ -250,24 +250,24 @@ event.on('connect',function(err){
 
 command.on('close',function(){
   commandConnected = false;
-  console.log('COMMAND PORT DISCONNECTED')
+  console.log('cgateweb: COMMAND PORT DISCONNECTED')
   commandInterval = setTimeout(function(){
-    console.log('COMMAND PORT RECONNECTING...')
+    console.log('cgateweb: COMMAND PORT RECONNECTING...')
     command.connect(COMPORT, HOST)
   },10000)
 })
 
 event.on('close',function(){
   eventConnected = false;
-  console.log('EVENT PORT DISCONNECTED')
+  console.log('cgateweb: EVENT PORT DISCONNECTED')
   eventInterval = setTimeout(function(){
-    console.log('EVENT PORT RECONNECTING...')
+    console.log('cgateweb: EVENT PORT RECONNECTING...')
     event.connect(EVENTPORT, HOST)
   },10000)
 })
 
 command.on('data',function(data) {
-  // if (logging == true) {console.log('Command data: ' + data);}
+  if (logging > 0) {console.log('cgateweb: Command data: ' + data);} // Was commented out.
   var lines = (buffer+data.toString()).split("\n");
   buffer = lines[lines.length-1];
   if (lines.length > 1) {
@@ -279,14 +279,14 @@ command.on('data',function(data) {
         address = (parts2[0].substring(0,parts2[0].length-1)).split("/");
         var level = parts2[1].split("=");
         if (parseInt(level[1]) == 0) {
-          if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' OFF');}
-          if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' 0%');}
+          if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' OFF');}
+          if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' 0%');}
           queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/state' , 'OFF',options, function() {});
           queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/level' , '0',options, function() {});
           eventEmitter.emit('level',address[3]+'/'+address[4]+'/'+address[5],0);
         } else {
-          if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' ON');}
-          if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' '+Math.round(parseInt(level[1])*100/255).toString()+'%');}
+          if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' ON');}
+          if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' '+Math.round(parseInt(level[1])*100/255).toString()+'%');}
           queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/state' , 'ON',options, function() {});
           queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/level' , Math.round(parseInt(level[1])*100/255).toString(),options, function() {});
           eventEmitter.emit('level',address[3]+'/'+address[4]+'/'+address[5],Math.round(parseInt(level[1])));
@@ -299,7 +299,7 @@ command.on('data',function(data) {
       } else if(parts1[0].split(" ")[0] == "344"){
         parseString(tree, function (err, result) {
           try{
-            if(logging === true) {console.log("C-Bus tree received:"+JSON.stringify(result))}
+            if(logging > 0) {console.log("C-Bus tree received:"+JSON.stringify(result))}
             queue.publish('cbus/read/'+treenet+'///tree',JSON.stringify(result))
           }catch(err){
             console.log(err)
@@ -312,14 +312,14 @@ command.on('data',function(data) {
           address = (parts2[1].substring(0,parts2[1].length-1)).split("/");
           var level = parts2[2].split("=");
           if (parseInt(level[1]) == 0) {
-            if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' OFF');}
-            if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' 0%');}
+            if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' OFF');}
+            if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' 0%');}
             queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/state' , 'OFF',options, function() {});
             queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/level' , '0',options, function() {});
             eventEmitter.emit('level',address[3]+'/'+address[4]+'/'+address[5],0);
           } else {
-            if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' ON');}
-            if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' '+Math.round(parseInt(level[1])*100/255).toString()+'%');}
+            if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' ON');}
+            if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' '+Math.round(parseInt(level[1])*100/255).toString()+'%');}
             queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/state' , 'ON',options, function() {});
             queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/level' , Math.round(parseInt(level[1])*100/255).toString(),options, function() {});
             eventEmitter.emit('level',address[3]+'/'+address[4]+'/'+address[5],Math.round(parseInt(level[1])));
@@ -336,34 +336,34 @@ command.on('data',function(data) {
 // Add a 'data' event handler for the client socket
 // data is what the server sent to this socket
 event.on('data', function(data) {
-    if (logging == true) {console.log('Event data: ' + data);}
+    if (logging > 0) {console.log('cgateweb: Event data: ' + data);}
     data.toString().split(/\r?\n/).forEach(line =>  {
-        if (logging == true) {console.log('Event line: ' + line);}
+        if (logging > 0) {console.log('cgateweb: Event line: ' + line);}
         var parts = line.split(" ");
         if(parts[0] == "lighting") {
           address = parts[2].split("/");
           switch(parts[1]) {
             case "on":
-              if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' ON');}
-              if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' 100%');}
+              if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' ON');}
+              if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' 100%');}
               queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/state' , 'ON',options, function() {});
               queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/level' , '100',options, function() {});
               break;
             case "off":
-              if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' OFF');}
-              if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' 0%');}
+              if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' OFF');}
+              if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' 0%');}
               queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/state' , 'OFF',options, function() {});
               queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/level' , '0',options, function() {});
               break;
             case "ramp":
               if(parseInt(parts[3]) > 0) {
-              if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' ON');}
-              if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' '+Math.round(parseInt(parts[3])*100/255).toString()+'%');}
+              if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' ON');}
+              if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' '+Math.round(parseInt(parts[3])*100/255).toString()+'%');}
                 queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/state' , 'ON',options, function() {});
                 queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/level' , Math.round(parseInt(parts[3])*100/255).toString(),options, function() {});
               } else {
-              if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' OFF');}
-              if (logging == true) {console.log('C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' 0%');}
+              if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' OFF');}
+              if (logging > 0) {console.log('cgateweb: C-Bus status received: '+address[3] +'/'+address[4]+'/'+address[5]+' 0%');}
                 queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/state' , 'OFF',options, function() {});
                 queue.publish('cbus/read/'+address[3]+'/'+address[4]+'/'+address[5]+'/level' , '0',options, function() {});
               }

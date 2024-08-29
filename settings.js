@@ -27,5 +27,5 @@ exports.retainreads = true;
 
 exports.messageinterval = 0;
 
-//logging
-exports.logging = false;
+//logging > 0 writes logs except NOOP. logging = 9 includes NOOP logging.
+exports.logging = 0;
